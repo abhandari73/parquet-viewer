@@ -18,5 +18,15 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: pip install .
-      - run: python tests/test_parquet_viewer.py
+      - name: Run tests
+        shell: bash
+        run: |
+          set +e
+          python tests/test_parquet_viewer.py > test-output.txt 2>&1
+          status=$?
+          cat test-output.txt
+          if [ $status -ne 0 ]; then
+            python -c "import sys; t=open('test-output.txt').read()[-6000:]; print('::error title=Test output::' + t.replace('%','%25').replace('\r','').replace('\n','%0A'))"
+          fi
+          exit $status
       - run: pqv --version

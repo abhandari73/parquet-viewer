@@ -295,7 +295,7 @@ class Viewer:
                 sql = None
                 last_err = None
                 for hive in ("true", "false"):
-                    cand = (f"(SELECT * EXCLUDE (filename), substr(filename, {strip}) AS _file "
+                    cand = (f"(SELECT * EXCLUDE (filename), replace(substr(filename, {strip}), '\\', '/') AS _file "
                             f"FROM read_parquet({lit(glob)}, hive_partitioning={hive}, "
                             f"union_by_name=true, filename=true))")
                     try:

@@ -55,7 +55,7 @@ Light and dark mode follow your system.
 
 ## Install
 
-Python 3.9 or newer.
+Python 3.9 or newer, on macOS or Linux. Windows is not supported yet (the tests don't pass there).
 
 ```bash
 pip install git+https://github.com/abhandari73/parquet-viewer

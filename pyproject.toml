@@ -3,7 +3,7 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "parquet-viewer-web"
+name = "parquet-browser"
 dynamic = ["version"]
 description = "Browse, filter and inspect parquet files in your web browser - a local web app powered by DuckDB."
 readme = "README.md"
@@ -29,6 +29,7 @@ Issues = "https://github.com/abhandari73/parquet-viewer/issues"
 
 [project.scripts]
 pqv = "parquet_viewer.server:main"
+parquet-browser = "parquet_viewer.server:main"
 parquet-viewer = "parquet_viewer.server:main"
 
 [tool.setuptools.dynamic]

@@ -5,11 +5,18 @@ desktop app. Point it at a folder, click through the sub-folders, open a file (o
 of files as one table) and sort, search, filter and profile it.
 
 ```bash
-pip install git+https://github.com/abhandari73/parquet-viewer
+pip install parquet-browser
 pqv ~/data
 ```
 
-![Filtered table with column statistics](docs/screenshot-data.png)
+Or try it without installing: `uvx parquet-browser ~/data`
+
+![Opening a folder, filtering and checking column statistics](https://raw.githubusercontent.com/abhandari73/parquet-viewer/main/docs/demo.gif)
+
+Parquet is the best format for storing tables — small, fast, typed — but you can't just double-click
+it. Looking inside usually means starting Python, loading pandas and printing a few rows, or exporting
+to CSV so Excel can open it. This tool gives you the Excel-style "open, sort, filter, look" directly on
+the parquet files.
 
 Everything runs on your own computer: a tiny Python web server (standard library only) serves
 the page, and [DuckDB](https://duckdb.org) reads the parquet files. Only the rows on screen are
@@ -51,11 +58,18 @@ file metadata (rows, row groups, writer) and key/value metadata such as the pand
 
 Light and dark mode follow your system.
 
-![Folder of partitioned files opened as one table, dark mode](docs/screenshot-folder-dark.png)
+![Folder of partitioned files opened as one table, dark mode](https://raw.githubusercontent.com/abhandari73/parquet-viewer/main/docs/screenshot-folder-dark.png)
 
 ## Install
 
 Python 3.9 or newer, on macOS or Linux. Windows is not supported yet (the tests don't pass there).
+
+```bash
+pip install parquet-browser      # or: pipx install parquet-browser
+uvx parquet-browser ~/data       # run once without installing (needs uv)
+```
+
+Latest development version:
 
 ```bash
 pip install git+https://github.com/abhandari73/parquet-viewer
@@ -91,7 +105,9 @@ pqv ~/data --port 9000 --no-browser
 | `--host ADDR` | Listen address (default `127.0.0.1`). See Security before changing it. |
 | `--version` | Show versions. |
 
-`parquet-viewer` is an alias for `pqv`, and `python -m parquet_viewer` works too.
+`parquet-browser` and `parquet-viewer` are aliases for `pqv`, and `python -m parquet_viewer` works too.
+
+![Filtered table with column statistics](https://raw.githubusercontent.com/abhandari73/parquet-viewer/main/docs/screenshot-data.png)
 
 ### Files on another machine
 
@@ -121,7 +137,7 @@ ssh -L 8770:localhost:8770 user@server 'pqv /path/to/data --no-browser --memory-
 | Click-to-filter, column stats | ✓ | partly | partly | varies |
 | Files larger than RAM | ✓ (DuckDB streams) | ✓ | limited by browser memory | varies |
 | Works offline | ✓ | – (UI loads from ui.duckdb.org) | ✓ | ✓ |
-| Install | `pip install` | DuckDB CLI | none | app install |
+| Install | `pip install parquet-browser` | DuckDB CLI | none | app install |
 
 If you mainly write SQL, the DuckDB UI is great. This tool is for quickly looking around a folder of
 data files and slicing them without writing code.

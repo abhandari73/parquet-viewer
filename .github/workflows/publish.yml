@@ -1,0 +1,51 @@
+name: publish
+
+# Runs when a GitHub release is published: tests, builds and uploads to PyPI.
+# Uses PyPI trusted publishing - no password or token is stored in GitHub.
+# One-time setup on pypi.org: Publishing -> add a pending publisher with
+# project parquet-browser, owner abhandari73, repo parquet-viewer,
+# workflow publish.yml, environment pypi.
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check the tag matches the package version
+        run: |
+          v=$(python -c "import re;print(re.search(r'__version__ = \"(.+?)\"', open('src/parquet_viewer/__init__.py').read()).group(1))")
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$v" != "$tag" ]; then echo "::error::Release tag $GITHUB_REF_NAME does not match package version $v (src/parquet_viewer/__init__.py)"; exit 1; fi
+      - run: pip install build
+      - run: python -m build
+      - name: Test the built wheel
+        run: |
+          pip install dist/*.whl
+          python tests/test_parquet_viewer.py
+          pqv --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/parquet-browser/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

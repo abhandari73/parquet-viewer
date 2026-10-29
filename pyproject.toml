@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "parquet-viewer-web"
+dynamic = ["version"]
+description = "Browse, filter and inspect parquet files in your web browser - a local web app powered by DuckDB."
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [{name = "abhandari73"}]
+requires-python = ">=3.9"
+dependencies = ["duckdb>=1.1"]
+keywords = ["parquet", "duckdb", "viewer", "data", "browser", "dataframe"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Environment :: Web Environment",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Database :: Front-Ends",
+]
+
+[project.urls]
+Homepage = "https://github.com/abhandari73/parquet-viewer"
+Issues = "https://github.com/abhandari73/parquet-viewer/issues"
+
+[project.scripts]
+pqv = "parquet_viewer.server:main"
+parquet-viewer = "parquet_viewer.server:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "parquet_viewer.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+parquet_viewer = ["static/*"]

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parquet Viewer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='2' width='14' height='12' rx='2' fill='%232f6f5e'/%3E%3Cpath d='M1 6h14M6 6v8M11 6v8' stroke='white' stroke-width='1.2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div id="progress"></div>
+<div class="app">
+  <aside class="side" id="side">
+    <div class="brand">
+      <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><rect x="1" y="2" width="14" height="12" rx="2" fill="currentColor"/><path d="M1 6h14M6 6v8M11 6v8" stroke="var(--side-bg)" stroke-width="1.2"/></svg>
+      <span>Parquet Viewer</span>
+      <button class="icon-btn" id="btn-refresh" title="Refresh folder">⟳</button>
+    </div>
+    <div class="root-path" id="root-path"></div>
+    <nav class="crumbs" id="crumbs"></nav>
+    <div class="side-tools">
+      <input id="dir-filter" type="search" placeholder="Filter this folder…" autocomplete="off">
+    </div>
+    <button class="open-folder" id="open-folder" hidden></button>
+    <ul class="entries" id="entries"></ul>
+    <div class="side-foot" id="dir-foot"></div>
+    <details class="recent" id="recent-box">
+      <summary>Recent</summary>
+      <ul id="recent"></ul>
+    </details>
+  </aside>
+
+  <main class="main" id="main">
+    <section class="empty" id="empty">
+      <div class="empty-card">
+        <h1>Open a parquet file</h1>
+        <p>Pick a file in the folder list on the left. Folders with many monthly or partitioned files
+          (for example <code>year=2024/</code>) can be opened as one table with
+          <b>Open all files as one table</b>.</p>
+        <ul>
+          <li><b>Search</b> looks through text columns, numbers and dates (e.g. <code>2024-06</code>).</li>
+          <li><b>Filters</b> per column, or a raw SQL condition such as <code>mktcap &gt; 1e9 AND country = 'JP'</code>.</li>
+          <li>Click a column header to sort, the <b>▾</b> for statistics, a row for all its fields.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="table-view" id="table-view" hidden>
+      <header class="t-head">
+        <div class="t-title">
+          <h1 id="t-name"></h1>
+          <div class="t-path" id="t-path"></div>
+        </div>
+        <div class="chips" id="t-meta"></div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button role="tab" data-tab="data" class="active">Data</button>
+        <button role="tab" data-tab="schema">Schema</button>
+        <button role="tab" data-tab="summary">Summary</button>
+      </div>
+
+      <div class="tab-body" id="tab-data">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <input id="search" type="search" placeholder="Search…" autocomplete="off">
+          </div>
+          <button class="btn" id="btn-filter">+ Filter</button>
+          <button class="btn" id="btn-sql" title="Write a SQL condition">SQL</button>
+          <button class="btn" id="btn-cols">Columns</button>
+          <span class="grow"></span>
+          <label class="psize">Rows <select id="page-size">
+            <option>50</option><option selected>100</option><option>250</option><option>500</option><option>1000</option>
+          </select></label>
+          <button class="btn" id="btn-code" title="SQL / Python for this view">Code</button>
+          <button class="btn primary" id="btn-export" title="Download the filtered rows and visible columns as CSV">Export CSV</button>
+        </div>
+        <div class="sql-row" id="sql-row" hidden>
+          <span class="kw">WHERE</span>
+          <input id="sql-where" type="text" spellcheck="false" placeholder="e.g.  mktcap > 1e9 AND country IN ('JP','KR')   — press Enter">
+          <button class="btn" id="sql-apply">Apply</button>
+          <button class="btn ghost" id="sql-clear">Clear</button>
+        </div>
+        <div class="filter-chips" id="filter-chips"></div>
+        <div class="grid-wrap" id="grid-wrap">
+          <table class="grid" id="grid"><thead></thead><tbody></tbody></table>
+          <div class="grid-msg" id="grid-msg" hidden></div>
+        </div>
+        <footer class="pager">
+          <span id="pager-info"></span>
+          <span class="grow"></span>
+          <button class="btn ghost" id="pg-first" title="First page">«</button>
+          <button class="btn ghost" id="pg-prev" title="Previous page">‹</button>
+          <span class="pg">Page <input id="pg-num" type="number" min="1" value="1"> of <span id="pg-total">1</span></span>
+          <button class="btn ghost" id="pg-next" title="Next page">›</button>
+          <button class="btn ghost" id="pg-last" title="Last page">»</button>
+        </footer>
+      </div>
+
+      <div class="tab-body" id="tab-schema" hidden>
+        <div class="toolbar"><input id="schema-filter" type="search" placeholder="Filter columns…"><span class="grow"></span><span class="muted" id="schema-count"></span></div>
+        <div class="scroll"><div id="schema-body"></div></div>
+      </div>
+
+      <div class="tab-body" id="tab-summary" hidden>
+        <div class="toolbar">
+          <button class="btn primary" id="btn-summarize">Run summary</button>
+          <span class="muted">Min, max, distinct, mean, quartiles and null share for the visible columns, with the current filters.</span>
+        </div>
+        <div class="scroll"><div id="summary-body"></div></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="drawer" id="drawer" hidden>
+    <div class="drawer-head">
+      <div><div class="drawer-title" id="drawer-title"></div><div class="drawer-sub" id="drawer-sub"></div></div>
+      <button class="icon-btn" id="drawer-close" title="Close">✕</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+  </aside>
+</div>
+
+<div class="pop" id="pop" hidden></div>
+<div class="modal-bg" id="modal" hidden><div class="modal" id="modal-box"></div></div>
+<div class="toasts" id="toasts"></div>
+<script src="/app.js"></script>
+</body>
+</html>
